@@ -4,7 +4,9 @@ __pycache__/
 *$py.class
 
 lib64/
-pyenv.cfg
+pygvenv.cfg
+bin/
+.vscode/
 
 # C extensions
 *.so
