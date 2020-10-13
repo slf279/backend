@@ -4,7 +4,7 @@ __pycache__/
 *$py.class
 
 lib64/
-pygvenv.cfg
+pyvenv.cfg
 bin/
 .vscode/
 
