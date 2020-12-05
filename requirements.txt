@@ -1,0 +1,7 @@
+Flask
+passlib
+argon2-cffi
+mariadb
+mypy
+yapf
+pytest
