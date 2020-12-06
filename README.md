@@ -1,5 +1,5 @@
-# backend
-A backend for providing necessary data to All Ears' mobile app and website.
+# Capstone Backend
+A JSON REST API for providing necessary data to All Ears' mobile app and website.
 
 
 # Structure
