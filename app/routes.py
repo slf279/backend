@@ -1,24 +1,29 @@
-from flask import Flask, request, make_response, jsonify, session
-from mariadb import ConnectionPool
+from app.models import MikeRecordProvider
+from flask import Flask, request, jsonify
 from .auth import AuthProvider
 
 
-def register_routes(app: Flask, db: ConnectionPool, auth: AuthProvider):
-    @app.route('/', methods=['GET', 'POST'])
-    def send_something():
-        return 'save elephants'
-
-    @app.route('/login', methods=['GET', 'POST'])
-    @auth.require_login()
+def register_routes(app: Flask, mike_records: MikeRecordProvider,
+                    auth: AuthProvider):
+    @app.route('/login', method='POST')
     def login():
-        if request.method == 'GET':
-            if auth.is_logged_in():
-                return redirect('/admin')
+        if request.is_json():
+            data = request.get_json()
+            token = data.get('token')
+            pwd = token.get('password')
+            if token != None:
+                if auth.is_logged_in(token):
+                    return jsonify({'token': auth.generate_new_token()}), 200
+                else:
+                    return jsonify({
+                        'message':
+                        'Your are not logged in. Your token expired or is invalid.'
+                    }), 401
+            elif pwd != None:
+                token = auth.login(pwd)
+                if token != None:
+                    return jsonify({'token': auth.generate_new_token()}), 200
+                else:
+                    jsonify({'message': 'Your password was incorrect.'}), 401
             else:
-                return render_template('login.html')
-        else:
-            if request.form.get('password') and auth.login(
-                    request.form.get('password')):
-                redirect('/admin')
-            else:
-                render_template('login.html')
+                400

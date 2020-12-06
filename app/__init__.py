@@ -1,6 +1,6 @@
 import os
 from typing import Dict, Mapping, List
-from flask import Flask, session, redirect
+from flask import Flask
 
 
 def create_app(test_config: Mapping = None) -> Flask:
@@ -17,19 +17,3 @@ def create_app(test_config: Mapping = None) -> Flask:
         pass
 
     return app
-
-
-def only_forest_elephants(data) -> List[Dict]:
-    # only records in DRC (cd), Congo (cg), Gabon (ga), Cameroon (cm)
-    return filter(
-        lambda record: record['CountryCode'] in ['cd', 'cg', 'ga', 'cm'], data)
-
-
-def require_login(action):
-    def do_if_logged_in(*args, **kwargs):
-        if session.get('logged_in'):
-            return action(*args, **kwargs)
-        else:
-            return redirect('/login')
-
-    return do_if_logged_in

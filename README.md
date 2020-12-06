@@ -8,30 +8,42 @@ Displayed below is the structure of our project.
     main.py
     app/
         __init__.py
+        auth.py
+        data_access.py
         models.py
         routes.py
-        templates/
-        static/
+        
     instance/
-        config.py
+        config.json
+        password.txt
+    example_config.json
+    ...
 
-All of the source code will go in the `app` folder. 
+The executable for the app will go in the `main.py` file. This is the file that should be run by the Flask development server or a WSGI or UWSGI application. 
 
-All of the configuration files should go in the `instance` folder. It should contain a `config.py` file that defines all of the environment-dependent variables that our application will need to run. It should never be added to source control. It will contain things like the server's secret key, database usernames and passwords, and whether or not the app is running in a production environment. An example config is provided in `example_config.py`. It has all of the variables that the server will need to run.
+The non-executable library file will go in the app folder. `init.py` contains the app factory and handles all of the configuration loading. `auth.py` contains the logic that will limit API access and tracks login state.  `data_access.py` contains all code that will interact with nonvolatile storage (database and file system) during application execution. `models.py` contains the data and service provider models for the application. `routes.py` contains the code that directly deals with requests at certain URL routes.
+
+All files that will change based on where the app is run will go in the `instance` folder. This includes app configuration values in the `config.json` file. That file will need to be written by the user. All fields present in `example_config.json` must be included. A hash of the master password using Argon2id must be included in the `password.txt` file. The file `set_password.py` was written for this purpose and can be used as follows:
+
+    python set_password.py [password]
+
+The `init_schema.sql` file will be used in the initial setup and structure of the database. It should be run before the app is deployed.
+
+All of the dependencies for the project are in the `requirements.txt` file.
 
 # Running the for development
 First, make sure all dependencies are installed.
 
-    pipenv install --dev
+    pip install -r requirements.txt
 
 Then, set the environment variables for the Flask development server.
 
-    export FLASK_APP=app
+    export FLASK_APP=main
     export FLASK_ENV=development
 
 Lastly, run the app.
 
-    pipenv run python -m flask run
+    python -m flask run
 
 In development mode, the Flask development server will reload automatically when your code changes.
 
