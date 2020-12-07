@@ -9,4 +9,3 @@ db = MariaDBRecordProvider(app.config)
 pwd_store = TextFileMasterPasswordProvider(app.instance_path)
 auth = AuthProvider(pwd_store, app.config['SECRET_KEY'])
 register_routes(app, db, auth)
-import app

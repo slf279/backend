@@ -1,11 +1,8 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Union
-from functools import wraps
-from flask.json import jsonify
 from passlib.hash import argon2
 from .models import MasterPasswordProvider
 import jwt
-import datetime
 
 
 class AuthProvider():
@@ -22,22 +19,13 @@ class AuthProvider():
             return False
 
     def login(self, password: str) -> Union[str, None]:
+        print(self.master_pwd_provider.get_master_pwd())
         if argon2.verify(password, self.master_pwd_provider.get_master_pwd()):
             return self.generate_new_token()
         else:
             return None
 
     def generate_new_token(self):
-        return jwt.encode(
-            {'exp': datetime.utcnow() + datetime.timedelta(minutes=30)},
-            self.secret)
-
-    def require_login(self, action):
-        @wraps(action)
-        def allow_if_logged_in(*args, **kwargs):
-            if self.is_logged_in():
-                return action(*args, **kwargs)
-            else:
-                return jsonify({'message': 'You are not logged in'}), 401
-
-        return allow_if_logged_in
+        return jwt.encode({
+            'exp': datetime.utcnow() + timedelta(minutes=30)
+        }, self.secret).decode('utf-8')

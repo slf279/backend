@@ -18,19 +18,24 @@ class MariaDBRecordProvider(MikeRecordProvider):
     # TODO: Implement all of MikeRecordProvider's methods
 
     def add_record(self, record: MikeRecord) -> bool:
-        pass
+        with self.pool.get_connection() as conn:
+            pass
 
     def add_records(self, records: Iterable[MikeRecord]):
-        pass
+        with self.pool.get_connection() as conn:
+            pass
 
     def get_record(self, record_key: MikeRecord.PrimaryKey) -> MikeRecord:
-        pass
+        with self.pool.get_connection() as conn:
+            pass
 
     def update_record(self, record_key: MikeRecord.PrimaryKey):
-        pass
+        with self.pool.get_connection() as conn:
+            pass
 
     def remove_record(self, record_key: MikeRecord.PrimaryKey) -> MikeRecord:
-        pass
+        with self.pool.get_connection() as conn:
+            pass
 
 
 class NoMasterPasswordException(Exception):
@@ -49,6 +54,8 @@ class TextFileMasterPasswordProvider(MasterPasswordProvider):
                     raise NoMasterPasswordException()
                 else:
                     return master_pwd
+        else:
+            raise NoMasterPasswordException()
 
     def set_master_pwd(self, new_pwd: str):
         with open(self.master_pwd_file, 'w') as f:
