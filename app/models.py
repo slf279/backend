@@ -31,7 +31,7 @@ class MikeRecord():
 
 
 class MasterPasswordProvider():
-    def get_master_pwd(self) -> str:
+    def verify_pwd(self, plain_pwd: str) -> bool:
         pass
 
     def set_master_pwd(self, new_pwd: str) -> str:

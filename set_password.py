@@ -1,7 +1,6 @@
 from app.data_access import TextFileMasterPasswordProvider
 from sys import argv, stderr, exit
 from os import path
-from passlib.hash import argon2
 
 
 def main():
@@ -12,7 +11,7 @@ def main():
         exit(1)
     pwd_store = TextFileMasterPasswordProvider(
         path.join(path.curdir, 'instance'))
-    pwd_store.set_master_pwd(argon2.hash(argv[1]))
+    pwd_store.set_master_pwd(argv[1])
     print('The master password has been reset.')
     exit(0)
 

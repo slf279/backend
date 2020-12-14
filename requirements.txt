@@ -1,6 +1,5 @@
 Flask
-passlib
-argon2-cffi
+argon2_cffi
 mariadb
 pyjwt
 mypy

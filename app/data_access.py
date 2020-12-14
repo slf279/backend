@@ -3,7 +3,7 @@ from os import path
 from flask import Flask
 from .models import MikeRecord, MikeRecordProvider, MasterPasswordProvider
 from typing import Iterable
-from passlib.hash import argon2
+from argon2 import PasswordHasher
 
 
 class MariaDBRecordProvider(MikeRecordProvider):
@@ -46,17 +46,17 @@ class TextFileMasterPasswordProvider(MasterPasswordProvider):
     def __init__(self, instance_folder: str) -> None:
         self.master_pwd_file = path.join(instance_folder, 'password.txt')
 
-    def get_master_pwd(self) -> str:
+    def verify_pwd(self, plain_pwd: str) -> bool:
         if path.isfile(self.master_pwd_file):
             with open(self.master_pwd_file, 'r') as f:
-                master_pwd = f.read()
-                if master_pwd == '':
+                master_pwd_hash = f.read()
+                if master_pwd_hash == '':
                     raise NoMasterPasswordException()
                 else:
-                    return master_pwd
+                    return PasswordHasher().verify(master_pwd_hash, plain_pwd)
         else:
             raise NoMasterPasswordException()
 
     def set_master_pwd(self, new_pwd: str):
         with open(self.master_pwd_file, 'w') as f:
-            f.write(argon2.hash(new_pwd))
+            f.write(PasswordHasher().hash(new_pwd))
