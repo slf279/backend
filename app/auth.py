@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta
 from typing import Union
-from passlib.hash import argon2
 from .models import MasterPasswordProvider
 import jwt
+import jwt.exceptions
 
 
 class AuthProvider():
@@ -15,12 +15,11 @@ class AuthProvider():
         try:
             jwt.decode(token, self.secret)
             return True
-        except jwt.ExpiredSignatureError:
+        except:
             return False
 
     def login(self, password: str) -> Union[str, None]:
-        print(self.master_pwd_provider.get_master_pwd())
-        if argon2.verify(password, self.master_pwd_provider.get_master_pwd()):
+        if self.master_pwd_provider.verify_pwd(password):
             return self.generate_new_token()
         else:
             return None
