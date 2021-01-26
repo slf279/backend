@@ -34,6 +34,11 @@ def admin_routes(app: Flask, mike_records: MikeRecordProvider,
     def upload_records():
         return jsonify({'message': 'Not implemented yet'}), 500
 
+    # TODO: Download from MIKE website
+    @admin.route('/update', methods=['POST'])
+    def update_from_mike():
+        return jsonify({'message': 'Not implemented yet'}), 500
+
     @admin.route('/edit', methods=['POST'])
     def edit_records():
         return jsonify({'message': 'Not implemented yet'}), 500
