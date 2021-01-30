@@ -49,3 +49,7 @@ Lastly, run the app.
     python -m flask run
 
 In development mode, the Flask development server will reload automatically when your code changes.
+
+# API Endpoint Documentation
+
+All REST API documentation for each of the URL Endpoints are in [API_DOCS.md](./API_DOCS.md).

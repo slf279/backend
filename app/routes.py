@@ -35,7 +35,7 @@ def admin_routes(app: Flask, mike_records: MikeRecordProvider,
         return jsonify({'message': 'Not implemented yet'}), 500
 
     # TODO: Download from MIKE website
-    @admin.route('/update', methods=['POST'])
+    @admin.route('/update', methods=['GET'])
     def update_from_mike():
         return jsonify({'message': 'Not implemented yet'}), 500
 
@@ -53,6 +53,14 @@ def register_routes(app: Flask, mike_records: MikeRecordProvider,
         if not (request.content_type.startswith('application/json')
                 or request.content_type.startswith('multipart/form-data')):
             return jsonify({'message': 'Bad Request'}), 400
+
+    @app.errorhandler(404)
+    def report_not_found(_):
+        return jsonify({'message': 'Not Found'}), 404
+
+    @app.errorhandler(500)
+    def report_internal_error(_):
+        return jsonify({'message': 'Internal Server Error'}), 500
 
     @app.route('/mikerecords', methods=['GET'])
     def fetch_mike_records():
