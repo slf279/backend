@@ -6,6 +6,7 @@ Pipfile.lock
 
 # Editor files
 .vscode/
+.idea/
 
 # Flask stuff:
 instance/*
