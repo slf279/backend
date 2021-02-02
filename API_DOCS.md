@@ -114,10 +114,58 @@ Retrieves the current MIKE database and adding all records to the application da
 
 ## `/admin/edit`: `POST`
 
+Edits updates the application database with changes listed in a JSON request containing three lists of MIKE records: `added`, `changed`, and `removed`. Regardless of the list, all records with the same primary keys (MIKE site ID and year) are replaced.
+
 ### Example:
 
     <- POST /admin/edit
-    // We need to talk about what goes here
+    {
+        "added": [
+            {
+                "unRegion": "Africa",
+                "subregionName": "Eastern Africa",
+                "subregionId": "FE",
+                "countryName": "Rwanda",
+                "countryCode": "rw",
+                "mikeSiteId": "AKG",
+                "mikeSiteName": "Akagera",
+                "year": 2021,
+                "totalNumberOfCarcasses": 0,
+                "numberOfIllegalCarcasses": 0
+            },
+            ...
+        ],
+        "changed": [
+            {
+                "unRegion": "Africa",
+                "subregionName": "Eastern Africa",
+                "subregionId": "FE",
+                "countryName": "Rwanda",
+                "countryCode": "rw",
+                "mikeSiteId": "AKG",
+                "mikeSiteName": "Akagera",
+                "year": 2013,
+                "totalNumberOfCarcasses": 3,
+                "numberOfIllegalCarcasses": 0
+            },
+            ...
+        ],
+        "removed": [
+            {
+                "unRegion": "Africa",
+                "subregionName": "Eastern Africa",
+                "subregionId": "FE",
+                "countryName": "Rwanda",
+                "countryCode": "rw",
+                "mikeSiteId": "AKG",
+                "mikeSiteName": "Akagera",
+                "year": 2013,
+                "totalNumberOfCarcasses": 1,
+                "numberOfIllegalCarcasses": 0
+            },
+            ...
+        ]
+    }
 
     -> OK
     {
