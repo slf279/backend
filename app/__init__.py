@@ -1,5 +1,5 @@
 import os
-from typing import Mapping
+from typing import Dict, Mapping, List
 from flask import Flask
 
 

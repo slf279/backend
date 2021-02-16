@@ -1,16 +1,15 @@
 from typing import Iterable
 from datetime import date
-from abc import ABC, abstractmethod
 
 
 class MikeRecord():
     class PrimaryKey(tuple):
-        def __new__(cls, mike_site_id: str, year: int):
-            return super().__new__(cls.__class__, (mike_site_id, year))
+        def __new__(self, mike_site_id: str, year: date):
+            return super().__new__(self.__class__, (mike_site_id, year))
 
     def __init__(self, un_region: str, subregion_name: str, subregion_id: str,
                  country_name: str, country_code: str, mike_site_id: str,
-                 mike_site_name: str, year: int,
+                 mike_site_name: str, year: date,
                  total_number_of_carcasses: int,
                  number_of_illegal_carcasses: int) -> None:
         self.un_region = un_region
@@ -31,41 +30,26 @@ class MikeRecord():
 ### Abstract classes for Data Providers ###
 
 
-class MasterPasswordProvider(ABC):
-    @abstractmethod
+class MasterPasswordProvider():
     def verify_pwd(self, plain_pwd: str) -> bool:
         pass
 
-    @abstractmethod
-    def set_master_pwd(self, new_pwd: str):
+    def set_master_pwd(self, new_pwd: str) -> str:
         pass
 
 
-class MikeRecordProvider(ABC):
-    @abstractmethod
-    def add_record(self, record: MikeRecord):
+class MikeRecordProvider():
+    def add_record(self, record: MikeRecord) -> bool:
         pass
 
-    @abstractmethod
     def add_records(self, records: Iterable[MikeRecord]):
         pass
 
-    @abstractmethod
     def get_record(self, record_key: MikeRecord.PrimaryKey) -> MikeRecord:
         pass
 
-    @abstractmethod
-    def get_all_records(self) -> Iterable[MikeRecord]:
+    def update_record(self, record_key: MikeRecord.PrimaryKey) -> MikeRecord:
         pass
 
-    @abstractmethod
-    def update_record(self, record_key: MikeRecord.PrimaryKey, updated_record: MikeRecord) -> MikeRecord:
-        pass
-
-    @abstractmethod
-    def bulk_update_from_file(self, file_path: str):
-        pass
-
-    @abstractmethod
     def remove_record(self, record_key: MikeRecord.PrimaryKey) -> MikeRecord:
         pass

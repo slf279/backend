@@ -1,3 +1,4 @@
+from app.auth import AuthProvider
 from app import create_app
 from app.data_access import MariaDBRecordProvider, TextFileMasterPasswordProvider
 from app.routes import register_routes

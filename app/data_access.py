@@ -17,7 +17,7 @@ class MariaDBRecordProvider(MikeRecordProvider):
 
     # TODO: Implement all of MikeRecordProvider's methods
 
-    def add_record(self, record: MikeRecord):
+    def add_record(self, record: MikeRecord) -> bool:
         with self.pool.get_connection() as conn:
             pass
 
@@ -29,11 +29,7 @@ class MariaDBRecordProvider(MikeRecordProvider):
         with self.pool.get_connection() as conn:
             pass
 
-    def get_all_records(self) -> Iterable[MikeRecord]:
-        with self.pool.get_connection() as conn:
-            pass
-
-    def update_record(self, record_key: MikeRecord.PrimaryKey, updated_record: MikeRecord):
+    def update_record(self, record_key: MikeRecord.PrimaryKey):
         with self.pool.get_connection() as conn:
             pass
 
