@@ -2,6 +2,11 @@ from typing import Union
 from app.models import MikeRecordProvider
 from flask import Flask, Request, request, jsonify, Blueprint
 from .auth import AuthProvider
+from os import remove
+import pymysql
+import csv
+import pandas as pd
+import requests
 
 
 def get_auth_token(request: Request) -> Union[str, None]:
@@ -34,7 +39,88 @@ def admin_routes(app: Flask, mike_records: MikeRecordProvider,
     def upload_records():
         return jsonify({'message': 'Not implemented yet'}), 500
 
-    # TODO: Download from MIKE website
+
+    # Download from MIKE website
+    @admin.route('/update', methods=['GET'])
+	"""
+		Support function utilized elsewhere. Downloads MIKES csv from MIKES google drive
+	"""
+    def download_from_mikes(itmid, dest):
+		def get_confirm_token(respnse):
+			for key, value in respnse.cookies.items():
+				if key.startswith('download_warning'):
+					return value
+			return None
+
+		def save_response_content(respnse, dest):
+			CHUNK_SIZE = 32768
+
+			with open(dest, "wb") as f:
+				for chunk in respnse.iter_content(CHUNK_SIZE):
+					if chunk: # filter out keep-alive new chunks
+						f.write(chunk)
+
+		URL = "https://drive.google.com/u/0/uc?id=1z-fPcdTbZ97QSGEkwthPvs1KInGeu4j6&export=download"
+
+		session = requests.Session()
+
+		respnse = session.get(URL, params = { 'id' : itmid }, stream = True)
+		tkn = get_confirm_token(respnse)
+
+		if tkn:
+			params = { 'id' : id, 'confirm' : tkn }
+			respnse = session.get(URL, params = params, stream = True)
+
+		save_response_content(respnse, dest)
+
+
+	"""
+		Utilizes download_from_mike to save information from MIKES csv file into local database table.
+		Allows country codes to be ignored when necessary - when they are not part of the forest elephant habitat
+		-- Assumes an open database connection and an open connection cursor
+		-- Assumes everything is run on the LOCAL MACHINE as AN ADMINISTRATOR. if this is incorrect, 
+			then the runner of the program will be denied the ability to write and delete the given files from the C drive.
+	"""
+	def upload_from_mike(conn, conn_cursor):
+		# TAKE ID FROM SHAREABLE LINK
+		file_id = "1z-fPcdTbZ97QSGEkwthPvs1KInGeu4j6"
+		# DESTINATION FILE ON YOUR DISK
+		dest = "C:/MIKES.csv"
+		download_from_mikes(file_id, dest)
+
+		read_file = pd.read_csv(r'C:/MIKES.csv')
+		country_codes = ["ga","cd","cg","cm","cf","ci","lr","gh","td"]
+
+		try:
+			with open("C:/MIKES.csv", "r") as MIKE:
+				csv_reader = csv.reader(MIKE, delimiter=',')
+
+				for row in csv_reader:
+					if row[4] in country_codes:
+
+						un_region = row[0]
+						subregion_name = row[1]
+						subregion_id = row[2]
+						country_name = row[3]
+						country_code = row[4]
+						mike_site_id = row[5]
+						mike_site_name = row[6]
+						year = row[7]
+						total_number_of_carcasses = row[8]
+						number_of_illegal_carcasses = row[9]
+
+						query = "INSERT IGNORE INTO elephantcarcasses VALUES (\"" + un_region + "\", \""\
+								"" + subregion_name + "\", \"" + subregion_id + "\", \"" + country_name + "\", \""\
+								"" + country_code + "\", \"" + mike_site_id + "\", \"" + mike_site_name + "\", \""\
+								"" + year + "\", \"" + total_number_of_carcasses + "\", \""\
+								"" + number_of_illegal_carcasses + "\");"
+
+						conn_cursor.execute(query)
+						conn.commit()
+		# delete file, so it is not saved on machine
+		remove("C:/MIKES.csv")
+		
+    # TODO: update from MIKE website
     @admin.route('/update', methods=['GET'])
     def update_from_mike():
         return jsonify({'message': 'Not implemented yet'}), 500
