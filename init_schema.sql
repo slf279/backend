@@ -19,17 +19,6 @@ CREATE TABLE IF NOT EXISTS all_ears.elephantcarcasses
     PRIMARY KEY (mike_site_id, mike_year)
 );
 
-CREATE TABLE IF NOT EXISTS all_ears.countrycarcasses
-(
-    country_code      char(2),
-    mike_year         int,
-    mike_site_id      char(3),
-    carcasses         int,
-    illegal_carcasses int,
-    PRIMARY KEY (country_code, mike_year),
-    FOREIGN KEY (mike_site_id) REFERENCES all_ears.elephantcarcasses (mike_site_id)
-);
-
 -- Alter username, host, and password to fit db setup desire
 CREATE USER IF NOT EXISTS 'admin'@'localhost' IDENTIFIED BY 'password';
 
