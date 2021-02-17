@@ -1,4 +1,4 @@
-from typing import Iterable
+from typing import Iterable, Optional
 from datetime import date
 from abc import ABC, abstractmethod
 
@@ -107,7 +107,7 @@ class MikeRecordProvider(ABC):
         pass
 
     @abstractmethod
-    def get_mike_record(self, record_key: MikeRecord.PrimaryKey) -> MikeRecord:
+    def get_mike_record(self, record_key: MikeRecord.PrimaryKey) -> Optional[MikeRecord]:
         pass
 
     @abstractmethod
@@ -115,7 +115,7 @@ class MikeRecordProvider(ABC):
         pass
 
     @abstractmethod
-    def update_mike_record(self, record_key: MikeRecord.PrimaryKey, updated_record: MikeRecord) -> MikeRecord:
+    def update_mike_record(self, record_key: MikeRecord.PrimaryKey, updated_record: MikeRecord) -> Optional[MikeRecord]:
         pass
 
     @abstractmethod
@@ -123,13 +123,13 @@ class MikeRecordProvider(ABC):
         pass
 
     @abstractmethod
-    def remove_mike_record(self, record_key: MikeRecord.PrimaryKey) -> MikeRecord:
+    def remove_mike_record(self, record_key: MikeRecord.PrimaryKey):
         pass
 
 
 class CountryRecordProvider(ABC):
     @abstractmethod
-    def get_country_record(self, record_key: CountryRecord.PrimaryKey) -> CountryRecord:
+    def get_country_record(self, record_key: CountryRecord.PrimaryKey) -> Optional[CountryRecord]:
         pass
 
     @abstractmethod
