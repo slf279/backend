@@ -13,8 +13,8 @@ CREATE TABLE IF NOT EXISTS all_ears.elephantcarcasses(
 	mike_site_id char(3),
 	mike_site_name char(100),
 	mike_year int,
-	total_number_of_carcasses int,
-	number_of_illegal_carcasses int,
+	carcasses int,
+	illegal_carcasses int,
 	PRIMARY KEY(mike_site_id, mike_year)
 );
 
