@@ -5,5 +5,5 @@
     "DB_PASSWORD": "password",
     "DB_HOST": "localhost",
     "DB_PORT": 3306,
-    "DB_NAME": "elephants"
+    "DB_NAME": "all_ears"
 }
