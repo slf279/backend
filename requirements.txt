@@ -5,3 +5,4 @@ pyjwt
 mypy
 yapf
 pytest
+requests
