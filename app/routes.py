@@ -1,12 +1,38 @@
-from typing import Union, List
-from app.models import MikeRecord, MikeRecordProvider
+from typing import Union, Iterable, Optional
+from app.models import MikeRecord, MikeRecordProvider, CountryRecordProvider
 from flask import Flask, Request, request, jsonify, Blueprint
 from .auth import AuthProvider
 import requests
 import csv
+from stringcase import camelcase
 
 MIKE_CSV_ID = "1z-fPcdTbZ97QSGEkwthPvs1KInGeu4j6"
 GOOGLE_DRIVE_URL = "https://drive.google.com/u/0/uc"
+
+
+def has_csv(req: Request, file_field_name: str) -> bool:
+    try:
+        return req.files[file_field_name].filename.split('.')[-1].lower() == "csv"
+    except (KeyError, AttributeError):
+        # KeyError in case the file is not in the dictionary
+        # AttributeError in case the dictionary returns None
+        return False
+
+
+def parse_mike_csv(csv_lines: Iterable[str]) -> Optional[Iterable[MikeRecord]]:
+    reader = csv.DictReader(csv_lines)
+    try:
+        return [MikeRecord(row["UNRegion"], row["SubregionName"], row["SubregionID"], row["CountryName"],
+                           row["CountryCode"], row["MIKEsiteID"], row["MIKEsiteName"],
+                           int(row["year"]), int(row["TotalNumberOfCarcasses"]), int(row["NumberOfIllegalCarcasses"]))
+                for row in reader]
+
+    except (ValueError, KeyError, csv.Error):
+        return None
+
+
+def obj_to_camel_dict(obj: object) -> dict:
+    return {camelcase(key): val for key, val in obj.__dict__.items()}
 
 
 def get_auth_token(req: Request) -> Union[str, None]:
@@ -22,7 +48,7 @@ def get_auth_token(req: Request) -> Union[str, None]:
     return token
 
 
-def admin_routes(app: Flask, mike_records: MikeRecordProvider,
+def admin_routes(app: Flask, mike_store: MikeRecordProvider,
                  auth: AuthProvider):
     admin = Blueprint('admin', 'admin', url_prefix='/admin')
 
@@ -33,28 +59,32 @@ def admin_routes(app: Flask, mike_records: MikeRecordProvider,
         if token is None or not auth.is_logged_in(token):
             return auth_failed_response
 
-    # TODO: Write logic that uploads and edits MIKE records
     @admin.route('/upload', methods=['POST'])
     def upload_records():
-        return jsonify({'message': 'Not implemented yet'}), 500
+        if not has_csv(request, 'mike_datasheet'):
+            return jsonify({'message': 'Requires a CSV file in "mike_datasheet" field.'}), 400
+        file = request.files['mike_datasheet']
+        try:
+            mike_records = parse_mike_csv(map(lambda x: x.decode('utf-8'), file.read().splitlines()))
+            if mike_records is None:
+                return jsonify({'message': 'The datasheet is in an invalid format'}, 400)
+            else:
+                mike_store.bulk_update_mike_records(mike_records)
+                return jsonify({'message': 'Database has been updated'}), 200
+        except UnicodeDecodeError:
+            return jsonify({'message': 'Send the CSV file in UTF-8 encoding.'}), 400
 
     @admin.route('/update', methods=['GET'])
     def update_from_mike():
-
         res = requests.get(GOOGLE_DRIVE_URL, {"id": MIKE_CSV_ID, "export": "download"})
-        mike_data = csv.reader(res.text.splitlines())
-        mike_data.next()  # skip header lines
-
-        def mike_record_from_list(list_record: List[str]):
-            tuple_record = tuple(list_record[0:7]) + (int(list_record[7]), int(list_record[8]), int(list_record[9]))
-            return MikeRecord.from_tuple(tuple_record)
-
-        try:
-            mike_records.bulk_update_mike_records(map(mike_record_from_list, mike_data))
-            return jsonify({'message': 'Database has been updated'}), 200
-        except (ValueError, IndexError):
+        mike_records = parse_mike_csv(res.text.splitlines())
+        if mike_records is None:
             return jsonify({'message': 'MIKE Records in invalid format. Contact an administrator.'}, 500)
+        else:
+            mike_store.bulk_update_mike_records(mike_records)
+            return jsonify({'message': 'Database has been updated'}), 200
 
+    # TODO: write logic to update database
     @admin.route('/edit', methods=['POST'])
     def edit_records():
         return jsonify({'message': 'Not implemented yet'}), 500
@@ -62,7 +92,7 @@ def admin_routes(app: Flask, mike_records: MikeRecordProvider,
     app.register_blueprint(admin)
 
 
-def register_routes(app: Flask, mike_records: MikeRecordProvider,
+def register_routes(app: Flask, mike_store: MikeRecordProvider, country_store: CountryRecordProvider,
                     auth: AuthProvider):
     @app.before_request
     def filter_request_types():
@@ -80,8 +110,15 @@ def register_routes(app: Flask, mike_records: MikeRecordProvider,
 
     @app.route('/mikerecords', methods=['GET'])
     def fetch_mike_records():
-        mike_records.get_all_mike_records()
-        pass
+        mike_records = mike_store.get_all_mike_records()
+        dict_records = list(map(obj_to_camel_dict, mike_records))
+        return jsonify(dict_records), 200
+
+    @app.route('/countryrecords', methods=['GET'])
+    def fetch_country_records():
+        country_records = country_store.get_all_country_records()
+        dict_records = list(map(obj_to_camel_dict, country_records))
+        return jsonify(dict_records), 200
 
     @app.route('/login', methods=['POST'])
     def login():
@@ -107,4 +144,4 @@ def register_routes(app: Flask, mike_records: MikeRecordProvider,
                 response = jsonify({'message': 'Your password is incorrect.'}), 401
         return response
 
-    admin_routes(app, mike_records, auth)
+    admin_routes(app, mike_store, auth)

@@ -6,3 +6,4 @@ mypy
 yapf
 pytest
 requests
+stringcase

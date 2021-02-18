@@ -31,7 +31,7 @@ All files that will change based on where the app is run will go in the `instanc
 
 The `init_schema.sql` file will be used in the initial setup and structure of the database. It should be run before the app is deployed.
 
-All of the dependencies for the project are in the `requirements.txt` file.
+All the dependencies for the project are in the `requirements.txt` file.
 
 # Running the for development
 
@@ -40,9 +40,18 @@ First, make sure all dependencies are installed.
     pip install -r requirements.txt
 
 Then, set the environment variables for the Flask development server.
-
+    
+    # Bash 
     export FLASK_APP=main
     export FLASK_ENV=development
+
+    # Powershell
+    $Env:FLASK_APP = "main"
+    $Env:FLASK_ENV = "development"
+
+    :: Command Line
+    set FLASK_APP=main
+    set FLASK_ENV=development
 
 Lastly, run the app.
 

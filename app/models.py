@@ -1,4 +1,4 @@
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Tuple
 from datetime import date
 from abc import ABC, abstractmethod
 
@@ -26,7 +26,7 @@ class MikeRecord:
     def get_primary_key(self) -> PrimaryKey:
         return self.PrimaryKey(self.mike_site_id, self.year)
 
-    def to_tuple(self) -> (str, str, str, str, str, str, str, int, int, int):
+    def to_tuple(self) -> Tuple[str, str, str, str, str, str, str, int, int, int]:
         """
         Returns this object as a tuple
 
@@ -45,7 +45,7 @@ class MikeRecord:
                 self.illegal_carcasses)
 
     @classmethod
-    def from_tuple(cls, tuple_record: (str, str, str, str, str, str, str, int, int, int)):
+    def from_tuple(cls, tuple_record: Tuple[str, str, str, str, str, str, str, int, int, int]):
         """
         Constructs a MikeRecord from a tuple
 
@@ -74,7 +74,7 @@ class CountryRecord:
         return self.PrimaryKey(self.country_code, self.year)
 
     @classmethod
-    def from_tuple(cls, tuple_record: (str, str, str, str, str, str, str, int, int, int)):
+    def from_tuple(cls, tuple_record: Tuple[str, str, int, int, int]):
         """
         Constructs a CountryRecord from a tuple
 
