@@ -25,8 +25,8 @@ Returns all MIKE Records in JSON as an array of objects.
             "mikeSiteId": "AKG",
             "mikeSiteName": "Akagera",
             "year": 2014,
-            "totalNumberOfCarcasses": 0,
-            "numberOfIllegalCarcasses": 0
+            "carcasses": 0,
+            "illegalCarcasses": 0
         },
         {
             "unRegion": "Africa",
@@ -37,8 +37,35 @@ Returns all MIKE Records in JSON as an array of objects.
             "mikeSiteId": "AKG",
             "mikeSiteName": "Akagera",
             "year": 2013,
-            "totalNumberOfCarcasses": 1,
-            "numberOfIllegalCarcasses": 0
+            "carcasses": 1,
+            "illegalCarcasses": 0
+        },
+        ...
+    ]
+
+## `/countryrecords`: `GET`
+
+Returns all Country Records (poaching records per country per year) in JSON as an array of objects.
+
+### Example:
+
+    <- GET /countryrecords
+
+    -> OK
+    [
+        {
+            "countryName": "Rwanda",
+            "countryCode": "rw",
+            "year": 2014,
+            "carcasses": 0,
+            "illegalCarcasses": 0
+        },
+        {
+            "countryName": "Rwanda",
+            "countryCode": "rw",
+            "year": 2013,
+            "carcasses": 0,
+            "illegalCarcasses": 0
         },
         ...
     ]
@@ -130,8 +157,8 @@ Edits updates the application database with changes listed in a JSON request con
                 "mikeSiteId": "AKG",
                 "mikeSiteName": "Akagera",
                 "year": 2021,
-                "totalNumberOfCarcasses": 0,
-                "numberOfIllegalCarcasses": 0
+                "carcasses": 0,
+                "illegalCarcasses": 0
             },
             ...
         ],
@@ -145,8 +172,8 @@ Edits updates the application database with changes listed in a JSON request con
                 "mikeSiteId": "AKG",
                 "mikeSiteName": "Akagera",
                 "year": 2013,
-                "totalNumberOfCarcasses": 3,
-                "numberOfIllegalCarcasses": 0
+                "carcasses": 3,
+                "illegalCarcasses": 0
             },
             ...
         ],
@@ -160,8 +187,8 @@ Edits updates the application database with changes listed in a JSON request con
                 "mikeSiteId": "AKG",
                 "mikeSiteName": "Akagera",
                 "year": 2013,
-                "totalNumberOfCarcasses": 1,
-                "numberOfIllegalCarcasses": 0
+                "carcasses": 1,
+                "illegalCarcasses": 0
             },
             ...
         ]

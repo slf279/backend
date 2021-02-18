@@ -5,7 +5,7 @@ import jwt
 import jwt.exceptions
 
 
-class AuthProvider():
+class AuthProvider:
     def __init__(self, master_pwd_provider: MasterPasswordProvider,
                  secret: str):
         self.master_pwd_provider = master_pwd_provider
