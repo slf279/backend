@@ -65,7 +65,7 @@ class MariaDBRecordProvider(MikeRecordProvider, CountryRecordProvider):
                                 ", illegal_carcasses ) "
                                 "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", record.to_tuple())
                 conn.commit()
-            except mariadb.Error as e:
+            except mariadb.Error:
                 conn.rollback()
                 raise DataAccessError()
 

@@ -94,7 +94,7 @@ class CountryRecord:
         return cls(tuple_record[0], tuple_record[1], tuple_record[2], tuple_record[3], tuple_record[4])
 
 
-### Data Provider Interfaces ###
+# Data Provider Interfaces
 
 class DataAccessError(Exception):
     pass

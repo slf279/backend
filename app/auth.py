@@ -15,7 +15,7 @@ class AuthProvider:
         try:
             jwt.decode(token, self.secret)
             return True
-        except:
+        except jwt.exceptions.DecodeError:
             return False
 
     def login(self, password: str) -> Union[str, None]:
