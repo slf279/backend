@@ -1,5 +1,6 @@
 from typing import Union, Iterable, Optional
-from app.models import MikeRecord, MikeRecordProvider, CountryRecordProvider
+from app.models import MikeRecord, MikeRecordProvider, CountryRecordProvider, InvalidRecordError, \
+    InvalidPrimaryKeyOperationError
 from flask import Flask, Request, request, jsonify, Blueprint
 from .auth import AuthProvider
 import requests
@@ -27,12 +28,19 @@ def parse_mike_csv(csv_lines: Iterable[str]) -> Optional[Iterable[MikeRecord]]:
                            int(row["year"]), int(row["TotalNumberOfCarcasses"]), int(row["NumberOfIllegalCarcasses"]))
                 for row in reader]
 
-    except (ValueError, KeyError, csv.Error):
+    except (ValueError, KeyError, csv.Error, InvalidRecordError):
         return None
 
 
 def obj_to_camel_dict(obj: object) -> dict:
     return {camelcase(key): val for key, val in obj.__dict__.items()}
+
+
+def json_dict_to_mike(json_dict: dict) -> MikeRecord:
+    return MikeRecord(json_dict["unRegion"], json_dict["subregionName"], json_dict["subregionId"],
+                      json_dict["countryName"], json_dict["countryCode"], json_dict["mikeSiteId"],
+                      json_dict["mikeSiteName"], json_dict["year"], json_dict["carcasses"],
+                      json_dict["illegalCarcasses"])
 
 
 def get_auth_token(req: Request) -> Union[str, None]:
@@ -67,10 +75,10 @@ def admin_routes(app: Flask, mike_store: MikeRecordProvider,
         try:
             mike_records = parse_mike_csv(map(lambda x: x.decode('utf-8'), file.read().splitlines()))
             if mike_records is None:
-                return jsonify({'message': 'The datasheet is in an invalid format'}, 400)
+                return jsonify({'message': 'The datasheet is in an invalid format.'}, 400)
             else:
-                mike_store.bulk_update_mike_records(mike_records)
-                return jsonify({'message': 'Database has been updated'}), 200
+                mike_store.add_or_overwrite_mike_records(mike_records)
+                return jsonify({'message': 'Database has been updated.'}), 200
         except UnicodeDecodeError:
             return jsonify({'message': 'Send the CSV file in UTF-8 encoding.'}), 400
 
@@ -79,15 +87,30 @@ def admin_routes(app: Flask, mike_store: MikeRecordProvider,
         res = requests.get(GOOGLE_DRIVE_URL, {"id": MIKE_CSV_ID, "export": "download"})
         mike_records = parse_mike_csv(res.text.splitlines())
         if mike_records is None:
-            return jsonify({'message': 'MIKE Records in invalid format. Contact an administrator.'}, 500)
+            return jsonify({'message': 'MIKE Records in invalid format. Contact an administrator.'}), 500
         else:
-            mike_store.bulk_update_mike_records(mike_records)
+            mike_store.add_or_overwrite_mike_records(mike_records)
             return jsonify({'message': 'Database has been updated'}), 200
 
-    # TODO: write logic to update database
     @admin.route('/edit', methods=['POST'])
     def edit_records():
-        return jsonify({'message': 'Not implemented yet'}), 500
+        data = request.get_json()
+        res = jsonify({'message': 'Bad Request'}), 400
+        if data is not None:
+            try:
+                records_to_add = [json_dict_to_mike(x) for x in data.get("added", [])]
+                mike_store.add_mike_records(records_to_add)
+                records_to_change = [json_dict_to_mike(x) for x in data.get("changed", [])]
+                mike_store.update_mike_records(records_to_change)
+                records_to_remove = [MikeRecord.PrimaryKey(x["mikeSiteId"], x["year"]) for x in data.get("removed", [])]
+                mike_store.remove_mike_records(records_to_remove)
+                res = jsonify({'message': 'Database has been updated.'}), 200
+            except (ValueError, InvalidRecordError):
+                pass
+            except InvalidPrimaryKeyOperationError as e:
+                res = jsonify({'message': 'Attempted to add a record whose primary key is already in the database.',
+                               'problemRecord': obj_to_camel_dict(e.record)}), 400
+        return res
 
     app.register_blueprint(admin)
 
