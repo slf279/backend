@@ -1,4 +1,4 @@
-from typing import Union, Iterable, Optional
+from typing import Iterable, Optional
 from app.models import MikeRecord, MikeRecordProvider, CountryRecordProvider, InvalidRecordError, \
     InvalidPrimaryKeyOperationError
 from flask import Flask, Request, request, jsonify, Blueprint
@@ -44,7 +44,7 @@ def json_dict_to_mike(json_dict: dict) -> MikeRecord:
                       json_dict['illegalCarcasses'])
 
 
-def get_auth_token(req: Request) -> Union[str, None]:
+def get_auth_token(req: Request) -> Optional[str]:
     auth_header = req.headers.get('Authorization')
     token = None
     if auth_header:
@@ -57,8 +57,8 @@ def get_auth_token(req: Request) -> Union[str, None]:
     return token
 
 
-def admin_routes(app: Flask, mike_store: MikeRecordProvider,
-                 auth: AuthProvider):
+def register_admin_routes(app: Flask, mike_store: MikeRecordProvider,
+                          auth: AuthProvider):
     admin = Blueprint('admin', 'admin', url_prefix='/admin')
 
     @admin.before_request
@@ -107,11 +107,11 @@ def admin_routes(app: Flask, mike_store: MikeRecordProvider,
                 mike_store.update_mike_records(records_to_change)
                 records_to_remove = [MikeRecord.PrimaryKey(x['mikeSiteId'], x['year']) for x in data.get('removed', [])]
                 mike_store.remove_mike_records(records_to_remove)
-                res = jsonify({'message': 'Database has been updated.'}), 200
-            except (ValueError, InvalidRecordError):
-                pass
+                return jsonify({'message': 'Database has been updated.'}), 200
+            except (ValueError, KeyError, InvalidRecordError):
+                return jsonify({'message': 'One or more of the records supplied are invalid.'}), 400
             except InvalidPrimaryKeyOperationError as e:
-                res = jsonify({'message': 'Attempted to add a record whose primary key is already in the database.',
+                return jsonify({'message': 'Attempted to add a record whose primary key is already in the database.',
                                'problemRecord': obj_to_camel_dict(e.record)}), 400
         return res
 
@@ -154,24 +154,19 @@ def register_routes(app: Flask, mike_store: MikeRecordProvider, country_store: C
     def login():
         data = request.get_json()
         pwd = data.get('password') if data is not None else None
-        response = jsonify({'message': 'Bad Request'}), 400
         token = get_auth_token(request)
         # if the user wants to refresh their token
         if token:
             if auth.is_logged_in(token):
-                response = jsonify({'token': auth.generate_new_token()}), 200
-            else:
-                response = jsonify({
-                    'message':
-                        'Your are not logged in. Your token expired or is invalid.'
-                }), 401
+                return jsonify({'token': auth.generate_new_token()}), 200
+            # else check password
         # else if user wants to login and get a token
-        elif pwd:
+        if pwd:
             token = auth.login(pwd)
             if token is not None:
-                response = jsonify({'token': auth.generate_new_token()}), 200
+                return jsonify({'token': auth.generate_new_token()}), 200
             else:
-                response = jsonify({'message': 'Your password is incorrect.'}), 401
-        return response
+                return jsonify({'message': 'Your password is incorrect.'}), 401
+        return jsonify({'message': 'Bad Request'}), 400
 
-    admin_routes(app, mike_store, auth)
+    register_admin_routes(app, mike_store, auth)

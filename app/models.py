@@ -10,7 +10,7 @@ class MikeRecord:
     class PrimaryKey(tuple):
         def __new__(cls, mike_site_id: str, year: int):
             if len(mike_site_id) == 3 and year >= 0:
-                return super().__new__(cls.__class__, (mike_site_id, year))
+                return super().__new__(cls, (mike_site_id, year))
             else:
                 raise InvalidRecordError()
 

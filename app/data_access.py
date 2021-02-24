@@ -4,6 +4,7 @@ from .models import MikeRecord, CountryRecord, MikeRecordProvider, CountryRecord
     DataAccessError, InvalidPrimaryKeyOperationError, NoMasterPasswordError
 from typing import Iterable, Optional
 from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError, VerificationError, InvalidHash
 
 
 class MariaDBRecordProvider(MikeRecordProvider, CountryRecordProvider):
@@ -137,13 +138,12 @@ class MariaDBRecordProvider(MikeRecordProvider, CountryRecordProvider):
                 for record in records:
                     self._update_record(cur, record)
                 conn.commit()
-            except mariadb.Error:
+            except mariadb.Error as e:
                 conn.rollback()
                 raise DataAccessError()
 
     @staticmethod
     def _update_record(cursor, record: MikeRecord):
-        record_tup = record.to_tuple()
         cursor.execute('update elephantcarcasses set'
                        ' un_region = ?'
                        ', subregion_name = ?'
@@ -154,7 +154,9 @@ class MariaDBRecordProvider(MikeRecordProvider, CountryRecordProvider):
                        ', carcasses = ?'
                        ', illegal_carcasses = ?  '
                        'where mike_site_id = ? and mike_year = ?',
-                       record_tup[0:5] + (record_tup[6],) + record_tup[7:] + record.get_primary_key())
+                       (record.un_region, record.subregion_name, record.subregion_id, record.country_name,
+                        record.country_code, record.mike_site_name, record.carcasses,
+                        record.illegal_carcasses,) + record.get_primary_key())
 
     def remove_mike_record(self, record_key: MikeRecord.PrimaryKey):
         with self.pool.get_connection() as conn:
@@ -240,6 +242,8 @@ class TextFileMasterPasswordProvider(MasterPasswordProvider):
                         return PasswordHasher().verify(master_pwd_hash, plain_pwd)
             except OSError:
                 raise DataAccessError()
+            except (VerifyMismatchError, VerificationError, InvalidHash):
+                return False
         else:
             raise NoMasterPasswordError()
 
