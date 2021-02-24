@@ -141,7 +141,7 @@ Retrieves the current MIKE database and adding all records to the application da
 
 ## `/admin/edit`: `POST`
 
-Edits updates the application database with changes listed in a JSON request containing three lists of MIKE records: `added`, `changed`, and `removed`. Regardless of the list, all records with the same primary keys (MIKE site ID and year) are replaced.
+Updates the application database with changes listed in a JSON request containing three lists of MIKE records: `added`, `changed`, and `removed`. Regardless of the list, all records with the same primary keys (MIKE site ID and year) are replaced.
 
 ### Example:
 
@@ -179,16 +179,8 @@ Edits updates the application database with changes listed in a JSON request con
         ],
         "removed": [
             {
-                "unRegion": "Africa",
-                "subregionName": "Eastern Africa",
-                "subregionId": "FE",
-                "countryName": "Rwanda",
-                "countryCode": "rw",
                 "mikeSiteId": "AKG",
-                "mikeSiteName": "Akagera",
                 "year": 2013,
-                "carcasses": 1,
-                "illegalCarcasses": 0
             },
             ...
         ]

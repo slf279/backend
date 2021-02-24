@@ -1,27 +1,37 @@
 from typing import Iterable, Optional, Tuple
-from datetime import date
 from abc import ABC, abstractmethod
+
+
+class InvalidRecordError(Exception):
+    pass
 
 
 class MikeRecord:
     class PrimaryKey(tuple):
         def __new__(cls, mike_site_id: str, year: int):
-            return super().__new__(cls.__class__, (mike_site_id, year))
+            if len(mike_site_id) == 3 and year >= 0:
+                return super().__new__(cls, (mike_site_id, year))
+            else:
+                raise InvalidRecordError()
 
     def __init__(self, un_region: str, subregion_name: str, subregion_id: str,
                  country_name: str, country_code: str, mike_site_id: str,
                  mike_site_name: str, year: int,
                  carcasses: int, illegal_carcasses: int) -> None:
-        self.un_region = un_region
-        self.subregion_name = subregion_name
-        self.subregion_id = subregion_id
-        self.country_name = country_name
-        self.country_code = country_code
-        self.mike_site_id = mike_site_id
-        self.mike_site_name = mike_site_name
-        self.year = year
-        self.carcasses = carcasses
-        self.illegal_carcasses = illegal_carcasses
+        if len(subregion_id) == 2 and len(country_code) == 2 and len(
+                mike_site_id) == 3 and year >= 0 and carcasses >= 0 and illegal_carcasses >= 0:
+            self.un_region = un_region
+            self.subregion_name = subregion_name
+            self.subregion_id = subregion_id
+            self.country_name = country_name
+            self.country_code = country_code
+            self.mike_site_id = mike_site_id
+            self.mike_site_name = mike_site_name
+            self.year = year
+            self.carcasses = carcasses
+            self.illegal_carcasses = illegal_carcasses
+        else:
+            raise InvalidRecordError()
 
     def get_primary_key(self) -> PrimaryKey:
         return self.PrimaryKey(self.mike_site_id, self.year)
@@ -84,7 +94,14 @@ class CountryRecord:
         return cls(tuple_record[0], tuple_record[1], tuple_record[2], tuple_record[3], tuple_record[4])
 
 
-### Abstract classes for Data Providers ###
+# Data Provider Interfaces
+
+class DataAccessError(Exception):
+    pass
+
+
+class NoMasterPasswordError(Exception):
+    pass
 
 
 class MasterPasswordProvider(ABC):
@@ -97,6 +114,12 @@ class MasterPasswordProvider(ABC):
         pass
 
 
+class InvalidPrimaryKeyOperationError(DataAccessError):
+    def __init__(self, record: MikeRecord):
+        self.record = record
+        super().__init__()
+
+
 class MikeRecordProvider(ABC):
     @abstractmethod
     def add_mike_record(self, record: MikeRecord):
@@ -104,6 +127,10 @@ class MikeRecordProvider(ABC):
 
     @abstractmethod
     def add_mike_records(self, records: Iterable[MikeRecord]):
+        pass
+
+    @abstractmethod
+    def add_or_overwrite_mike_records(self, records: Iterable[MikeRecord]):
         pass
 
     @abstractmethod
@@ -115,15 +142,19 @@ class MikeRecordProvider(ABC):
         pass
 
     @abstractmethod
-    def update_mike_record(self, record_key: MikeRecord.PrimaryKey, updated_record: MikeRecord) -> Optional[MikeRecord]:
+    def update_mike_record(self, record: MikeRecord):
         pass
 
     @abstractmethod
-    def bulk_update_mike_records(self, records: Iterable[MikeRecord]):
+    def update_mike_records(self, records: Iterable[MikeRecord]):
         pass
 
     @abstractmethod
     def remove_mike_record(self, record_key: MikeRecord.PrimaryKey):
+        pass
+
+    @abstractmethod
+    def remove_mike_records(self, record_keys: Iterable[MikeRecord.PrimaryKey]):
         pass
 
 
