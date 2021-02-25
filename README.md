@@ -62,3 +62,18 @@ In development mode, the Flask development server will reload automatically when
 # API Endpoint Documentation
 
 All REST API documentation for each of the URL Endpoints are in [API_DOCS.md](./API_DOCS.md).
+
+# Deployment
+In order to deploy the app one will need MariaDB version 10.5 (other versions not tested) installed on one's system 
+along with MariaDB Connector/C. On Ubuntu, one should install the `mariadb-server` package from MariaDB's official 
+repository (instructions [here](https://mariadb.org/download/)). In order to use the MariaDB Connector/C with Python's
+connector package `mariadb` one will need to install the development library for MariaDB (`libmariadb-dev` on Ubuntu).
+
+After installing all system requirements, one must then install first the `wheel` then `uwsgi` Python packages and make 
+a file named `wsgi.py`. It should have these contents:
+
+    from main import app
+    
+    if __name__ == "__main__":
+        app.run()
+

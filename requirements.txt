@@ -1,4 +1,4 @@
-Flask
+flask
 argon2_cffi
 mariadb
 pyjwt
