@@ -17,8 +17,16 @@ Displayed below is the structure of our project.
     instance/
         config.json
         password.txt
-    example_config.json
+    
+    example_deployment_files/
+        example_app_config.json
+        example_nginx_site.conf
+        example_service_file.service
+        example_uwsgi.ini
+
     init_schema.sql
+    set_password.py
+    requirements.txt
     ...
 
 The executable for the app will go in the `main.py` file. This is the file that should be run by the Flask development server or a WSGI or UWSGI application.
@@ -77,3 +85,6 @@ a file named `wsgi.py`. It should have these contents:
     if __name__ == "__main__":
         app.run()
 
+After doing all that, one will need to create an `.ini` file for one's uwsgi and a service file. Examples are provided 
+in the `deployment_example_files` directory. After this one needs to write one's NGINX site config file. We use reverse
+proxy in our example. Open the firewall, start the service, reload NGINX and the app is deployed!

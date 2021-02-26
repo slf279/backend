@@ -1,0 +1,13 @@
+[Unit]
+Description=uWSGI instance to serve <app>'s Backend
+After=network.target
+
+[Service]
+User=<user>
+Group=www-data
+WorkingDirectory=/home/allears/backend
+Environment="PATH=/home/<user>/backend/<virtual environment>/bin"
+ExecStart=/home/<user>/backend/<virtual environment>/bin/uwsgi --ini /home/<user>/backend/backend.ini
+
+[Install]
+WantedBy=multi-user.target
