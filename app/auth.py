@@ -5,7 +5,7 @@ import jwt
 import jwt.exceptions
 
 
-class AuthProvider():
+class AuthProvider:
     def __init__(self, master_pwd_provider: MasterPasswordProvider,
                  secret: str):
         self.master_pwd_provider = master_pwd_provider
@@ -13,9 +13,9 @@ class AuthProvider():
 
     def is_logged_in(self, token: str) -> bool:
         try:
-            jwt.decode(token, self.secret)
+            jwt.decode(token, self.secret, algorithms=['HS256'])
             return True
-        except:
+        except (jwt.exceptions.DecodeError, jwt.ExpiredSignatureError) as e:
             return False
 
     def login(self, password: str) -> Union[str, None]:
@@ -27,4 +27,4 @@ class AuthProvider():
     def generate_new_token(self):
         return jwt.encode({
             'exp': datetime.utcnow() + timedelta(minutes=30)
-        }, self.secret).decode('utf-8')
+        }, self.secret)

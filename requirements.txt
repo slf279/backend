@@ -1,7 +1,9 @@
-Flask
+flask
 argon2_cffi
 mariadb
 pyjwt
 mypy
 yapf
 pytest
+requests
+stringcase

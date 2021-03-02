@@ -25,8 +25,8 @@ Returns all MIKE Records in JSON as an array of objects.
             "mikeSiteId": "AKG",
             "mikeSiteName": "Akagera",
             "year": 2014,
-            "totalNumberOfCarcasses": 0,
-            "numberOfIllegalCarcasses": 0
+            "carcasses": 0,
+            "illegalCarcasses": 0
         },
         {
             "unRegion": "Africa",
@@ -37,8 +37,35 @@ Returns all MIKE Records in JSON as an array of objects.
             "mikeSiteId": "AKG",
             "mikeSiteName": "Akagera",
             "year": 2013,
-            "totalNumberOfCarcasses": 1,
-            "numberOfIllegalCarcasses": 0
+            "carcasses": 1,
+            "illegalCarcasses": 0
+        },
+        ...
+    ]
+
+## `/countryrecords`: `GET`
+
+Returns all Country Records (poaching records per country per year) in JSON as an array of objects.
+
+### Example:
+
+    <- GET /countryrecords
+
+    -> OK
+    [
+        {
+            "countryName": "Rwanda",
+            "countryCode": "rw",
+            "year": 2014,
+            "carcasses": 0,
+            "illegalCarcasses": 0
+        },
+        {
+            "countryName": "Rwanda",
+            "countryCode": "rw",
+            "year": 2013,
+            "carcasses": 0,
+            "illegalCarcasses": 0
         },
         ...
     ]
@@ -92,7 +119,8 @@ Receives a CSV in the MIKE database format and adds the records to the database,
 ### Example:
 
     <- POST /admin/upload
-    Multipart Form Data: whatever.csv
+    Multipart Form Data: 
+        "mike_datasheet": whatever.csv
 
     -> OK
     {
@@ -114,7 +142,7 @@ Retrieves the current MIKE database and adding all records to the application da
 
 ## `/admin/edit`: `POST`
 
-Edits updates the application database with changes listed in a JSON request containing three lists of MIKE records: `added`, `changed`, and `removed`. Regardless of the list, all records with the same primary keys (MIKE site ID and year) are replaced.
+Updates the application database with changes listed in a JSON request containing three lists of MIKE records: `added`, `changed`, and `removed`. Regardless of the list, all records with the same primary keys (MIKE site ID and year) are replaced.
 
 ### Example:
 
@@ -130,8 +158,8 @@ Edits updates the application database with changes listed in a JSON request con
                 "mikeSiteId": "AKG",
                 "mikeSiteName": "Akagera",
                 "year": 2021,
-                "totalNumberOfCarcasses": 0,
-                "numberOfIllegalCarcasses": 0
+                "carcasses": 0,
+                "illegalCarcasses": 0
             },
             ...
         ],
@@ -145,23 +173,15 @@ Edits updates the application database with changes listed in a JSON request con
                 "mikeSiteId": "AKG",
                 "mikeSiteName": "Akagera",
                 "year": 2013,
-                "totalNumberOfCarcasses": 3,
-                "numberOfIllegalCarcasses": 0
+                "carcasses": 3,
+                "illegalCarcasses": 0
             },
             ...
         ],
         "removed": [
             {
-                "unRegion": "Africa",
-                "subregionName": "Eastern Africa",
-                "subregionId": "FE",
-                "countryName": "Rwanda",
-                "countryCode": "rw",
                 "mikeSiteId": "AKG",
-                "mikeSiteName": "Akagera",
                 "year": 2013,
-                "totalNumberOfCarcasses": 1,
-                "numberOfIllegalCarcasses": 0
             },
             ...
         ]
