@@ -119,7 +119,8 @@ Receives a CSV in the MIKE database format and adds the records to the database,
 ### Example:
 
     <- POST /admin/upload
-    Multipart Form Data: whatever.csv
+    Multipart Form Data: 
+        "mike_datasheet": whatever.csv
 
     -> OK
     {
