@@ -9,18 +9,21 @@ from argon2.exceptions import VerifyMismatchError, VerificationError, InvalidHas
 
 class MariaDBRecordProvider(MikeRecordProvider, CountryRecordProvider):
     def __init__(self, config: dict) -> None:
-        self.pool = mariadb.ConnectionPool(host=config['DB_HOST'],
-                                           port=config['DB_PORT'],
-                                           user=config['DB_USER'],
-                                           password=config['DB_PASSWORD'],
-                                           database=config['DB_NAME'],
-                                           pool_name='all-ears',
-                                           pool_size=20)
+        self._config = config
+
+    def _get_connection(self):
+        return mariadb.connect(
+            host=self._config['DB_HOST'],
+            port=self._config['DB_PORT'],
+            user=self._config['DB_USER'],
+            password=self._config['DB_PASSWORD'],
+            database=self._config['DB_NAME'],
+        )
 
     # Implements MikeRecordProvider
 
     def add_mike_record(self, record: MikeRecord):
-        with self.pool.get_connection() as conn:
+        with self._get_connection() as conn:
             cur = conn.cursor()
             try:
                 self._add_record(cur, record)
@@ -34,7 +37,7 @@ class MariaDBRecordProvider(MikeRecordProvider, CountryRecordProvider):
 
     def add_mike_records(self, records: Iterable[MikeRecord]):
         curr_record = None
-        with self.pool.get_connection() as conn:
+        with self._get_connection() as conn:
             cur = conn.cursor()
             try:
                 for record in records:
@@ -49,22 +52,24 @@ class MariaDBRecordProvider(MikeRecordProvider, CountryRecordProvider):
                     raise DataAccessError()
 
     def add_or_overwrite_mike_records(self, records: Iterable[MikeRecord]):
-        with self.pool.get_connection() as conn:
+        with self._get_connection() as conn:
             cur = conn.cursor()
             try:
                 for record in records:
-                    cur.execute('replace into elephantcarcasses '
-                                '( un_region'
-                                ', subregion_name'
-                                ', subregion_id'
-                                ', country_name'
-                                ', country_code'
-                                ', mike_site_id'
-                                ', mike_site_name'
-                                ', mike_year'
-                                ', carcasses'
-                                ', illegal_carcasses ) '
-                                'values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', record.to_tuple())
+                    cur.execute(
+                        'replace into elephantcarcasses '
+                        '( un_region'
+                        ', subregion_name'
+                        ', subregion_id'
+                        ', country_name'
+                        ', country_code'
+                        ', mike_site_id'
+                        ', mike_site_name'
+                        ', mike_year'
+                        ', carcasses'
+                        ', illegal_carcasses ) '
+                        'values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                        record.to_tuple())
                 conn.commit()
             except mariadb.Error:
                 conn.rollback()
@@ -72,36 +77,39 @@ class MariaDBRecordProvider(MikeRecordProvider, CountryRecordProvider):
 
     @staticmethod
     def _add_record(cursor, record: MikeRecord):
-        cursor.execute('insert into elephantcarcasses '
-                       '( un_region'
-                       ', subregion_name'
-                       ', subregion_id'
-                       ', country_name'
-                       ', country_code'
-                       ', mike_site_id'
-                       ', mike_site_name'
-                       ', mike_year'
-                       ', carcasses'
-                       ', illegal_carcasses ) '
-                       'values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', record.to_tuple())
+        cursor.execute(
+            'insert into elephantcarcasses '
+            '( un_region'
+            ', subregion_name'
+            ', subregion_id'
+            ', country_name'
+            ', country_code'
+            ', mike_site_id'
+            ', mike_site_name'
+            ', mike_year'
+            ', carcasses'
+            ', illegal_carcasses ) '
+            'values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', record.to_tuple())
 
-    def get_mike_record(self, record_key: MikeRecord.PrimaryKey) -> Optional[MikeRecord]:
-        with self.pool.get_connection() as conn:
+    def get_mike_record(
+            self, record_key: MikeRecord.PrimaryKey) -> Optional[MikeRecord]:
+        with self._get_connection() as conn:
             cur = conn.cursor()
             try:
-                cur.execute('select '
-                            'un_region'
-                            ', subregion_name'
-                            ', subregion_id'
-                            ', country_name'
-                            ', country_code'
-                            ', mike_site_id'
-                            ', mike_site_name'
-                            ', mike_year'
-                            ', carcasses'
-                            ', illegal_carcasses '
-                            'from elephantcarcasses '
-                            'where mike_site_id = ? and mike_year = ?', record_key)
+                cur.execute(
+                    'select '
+                    'un_region'
+                    ', subregion_name'
+                    ', subregion_id'
+                    ', country_name'
+                    ', country_code'
+                    ', mike_site_id'
+                    ', mike_site_name'
+                    ', mike_year'
+                    ', carcasses'
+                    ', illegal_carcasses '
+                    'from elephantcarcasses '
+                    'where mike_site_id = ? and mike_year = ?', record_key)
             except mariadb.Error:
                 raise DataAccessError()
             if cur.fieldcount() == 0:
@@ -110,7 +118,7 @@ class MariaDBRecordProvider(MikeRecordProvider, CountryRecordProvider):
                 return MikeRecord.from_tuple(cur.fetchone())
 
     def get_all_mike_records(self) -> Iterable[MikeRecord]:
-        with self.pool.get_connection() as conn:
+        with self._get_connection() as conn:
             cur = conn.cursor()
             try:
                 cur.execute('select * from elephantcarcasses')
@@ -122,7 +130,7 @@ class MariaDBRecordProvider(MikeRecordProvider, CountryRecordProvider):
                 return list(map(MikeRecord.from_tuple, cur))
 
     def update_mike_record(self, record: MikeRecord):
-        with self.pool.get_connection() as conn:
+        with self._get_connection() as conn:
             cur = conn.cursor()
             try:
                 self._update_record(cur, record)
@@ -132,7 +140,7 @@ class MariaDBRecordProvider(MikeRecordProvider, CountryRecordProvider):
                 raise DataAccessError()
 
     def update_mike_records(self, records: Iterable[MikeRecord]):
-        with self.pool.get_connection() as conn:
+        with self._get_connection() as conn:
             cur = conn.cursor()
             try:
                 for record in records:
@@ -144,22 +152,29 @@ class MariaDBRecordProvider(MikeRecordProvider, CountryRecordProvider):
 
     @staticmethod
     def _update_record(cursor, record: MikeRecord):
-        cursor.execute('update elephantcarcasses set'
-                       ' un_region = ?'
-                       ', subregion_name = ?'
-                       ', subregion_id = ?'
-                       ', country_name = ?'
-                       ', country_code = ?'
-                       ', mike_site_name = ?'
-                       ', carcasses = ?'
-                       ', illegal_carcasses = ?  '
-                       'where mike_site_id = ? and mike_year = ?',
-                       (record.un_region, record.subregion_name, record.subregion_id, record.country_name,
-                        record.country_code, record.mike_site_name, record.carcasses,
-                        record.illegal_carcasses,) + record.get_primary_key())
+        cursor.execute(
+            'update elephantcarcasses set'
+            ' un_region = ?'
+            ', subregion_name = ?'
+            ', subregion_id = ?'
+            ', country_name = ?'
+            ', country_code = ?'
+            ', mike_site_name = ?'
+            ', carcasses = ?'
+            ', illegal_carcasses = ?  '
+            'where mike_site_id = ? and mike_year = ?', (
+                record.un_region,
+                record.subregion_name,
+                record.subregion_id,
+                record.country_name,
+                record.country_code,
+                record.mike_site_name,
+                record.carcasses,
+                record.illegal_carcasses,
+            ) + record.get_primary_key())
 
     def remove_mike_record(self, record_key: MikeRecord.PrimaryKey):
-        with self.pool.get_connection() as conn:
+        with self._get_connection() as conn:
             cur = conn.cursor()
             try:
                 self._remove_record(cur, record_key)
@@ -168,8 +183,9 @@ class MariaDBRecordProvider(MikeRecordProvider, CountryRecordProvider):
                 conn.rollback()
                 raise DataAccessError()
 
-    def remove_mike_records(self, record_keys: Iterable[MikeRecord.PrimaryKey]):
-        with self.pool.get_connection() as conn:
+    def remove_mike_records(self,
+                            record_keys: Iterable[MikeRecord.PrimaryKey]):
+        with self._get_connection() as conn:
             cur = conn.cursor()
             try:
                 for record_key in record_keys:
@@ -181,25 +197,28 @@ class MariaDBRecordProvider(MikeRecordProvider, CountryRecordProvider):
 
     @staticmethod
     def _remove_record(cursor, record_key: MikeRecord.PrimaryKey):
-        cursor.execute('delete from elephantcarcasses '
-                       'where mike_site_id = ? and mike_year = ?',
-                       record_key)
+        cursor.execute(
+            'delete from elephantcarcasses '
+            'where mike_site_id = ? and mike_year = ?', record_key)
 
     # Implements CountryRecordProvider
 
-    def get_country_record(self, record_key: CountryRecord.PrimaryKey) -> Optional[CountryRecord]:
-        with self.pool.get_connection() as conn:
+    def get_country_record(
+            self,
+            record_key: CountryRecord.PrimaryKey) -> Optional[CountryRecord]:
+        with self._get_connection() as conn:
             cur = conn.cursor()
             try:
-                cur.execute('select '
-                            'country_name'
-                            ', country_code'
-                            ', mike_year'
-                            ', count(carcasses) as carcasses'
-                            ', count(illegal_carcasses) as illegal_carcasses '
-                            'from elephantcarcasses '
-                            'where country_code = ? and mike_year = ? '
-                            'group by country_code, mike_year', record_key)
+                cur.execute(
+                    'select '
+                    'country_name'
+                    ', country_code'
+                    ', mike_year'
+                    ', count(carcasses) as carcasses'
+                    ', count(illegal_carcasses) as illegal_carcasses '
+                    'from elephantcarcasses '
+                    'where country_code = ? and mike_year = ? '
+                    'group by country_code, mike_year', record_key)
             except mariadb.Error:
                 raise DataAccessError()
             if cur.fieldcount() == 0:
@@ -208,7 +227,7 @@ class MariaDBRecordProvider(MikeRecordProvider, CountryRecordProvider):
                 return CountryRecord.from_tuple(cur.fetchone())
 
     def get_all_country_records(self) -> Iterable[CountryRecord]:
-        with self.pool.get_connection() as conn:
+        with self._get_connection() as conn:
             cur = conn.cursor()
             try:
                 cur.execute('select '
@@ -239,7 +258,8 @@ class TextFileMasterPasswordProvider(MasterPasswordProvider):
                     if master_pwd_hash == '':
                         raise NoMasterPasswordError()
                     else:
-                        return PasswordHasher().verify(master_pwd_hash, plain_pwd)
+                        return PasswordHasher().verify(master_pwd_hash,
+                                                       plain_pwd)
             except OSError:
                 raise DataAccessError()
             except (VerifyMismatchError, VerificationError, InvalidHash):

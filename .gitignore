@@ -18,6 +18,7 @@ instance/*
 
 # Environments
 venv/
+env/
 
 # mkdocs documentation
 /site
