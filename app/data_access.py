@@ -214,8 +214,8 @@ class MariaDBRecordProvider(MikeRecordProvider, CountryRecordProvider):
                     'country_name'
                     ', country_code'
                     ', mike_year'
-                    ', count(carcasses) as carcasses'
-                    ', count(illegal_carcasses) as illegal_carcasses '
+                    ', cast(sum(carcasses) as int) as carcasses'
+                    ', cast(sum(illegal_carcasses) as int) as illegal_carcasses '
                     'from elephantcarcasses '
                     'where country_code = ? and mike_year = ? '
                     'group by country_code, mike_year', record_key)
@@ -230,14 +230,15 @@ class MariaDBRecordProvider(MikeRecordProvider, CountryRecordProvider):
         with self._get_connection() as conn:
             cur = conn.cursor()
             try:
-                cur.execute('select '
-                            'country_name'
-                            ', country_code'
-                            ', mike_year'
-                            ', count(carcasses) as carcasses'
-                            ', count(illegal_carcasses) as illegal_carcasses '
-                            'from elephantcarcasses '
-                            'group by country_code, mike_year')
+                cur.execute(
+                    'select '
+                    'country_name'
+                    ', country_code'
+                    ', mike_year'
+                    ', cast(sum(carcasses) as int) as carcasses'
+                    ', cast(sum(illegal_carcasses) as int) as illegal_carcasses '
+                    'from elephantcarcasses '
+                    'group by country_code, mike_year')
             except mariadb.Error:
                 raise DataAccessError()
             if cur.fieldcount() == 0:
