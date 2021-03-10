@@ -88,7 +88,7 @@ def register_admin_routes(app: Flask, mike_store: MikeRecordProvider,
                     file.read().splitlines()))
             if mike_records is None:
                 return jsonify(
-                    {'message': 'The datasheet is in an invalid format.'}, 400)
+                    {'message': 'The datasheet is in an invalid format.'}), 400
             else:
                 mike_store.add_or_overwrite_mike_records([
                     x for x in mike_records
