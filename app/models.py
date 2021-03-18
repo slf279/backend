@@ -22,10 +22,10 @@ class MikeRecord:
                 mike_site_id) == 3 and year >= 0 and carcasses >= 0 and illegal_carcasses >= 0:
             self.un_region = un_region
             self.subregion_name = subregion_name
-            self.subregion_id = subregion_id
+            self.subregion_id = subregion_id.lower()
             self.country_name = country_name
-            self.country_code = country_code
-            self.mike_site_id = mike_site_id
+            self.country_code = country_code.lower()
+            self.mike_site_id = mike_site_id.lower()
             self.mike_site_name = mike_site_name
             self.year = year
             self.carcasses = carcasses
